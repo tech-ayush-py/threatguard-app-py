@@ -6,9 +6,9 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 import atexit
-import json  # <-- Added for parsing Gemini's response
 import json
 from dotenv import load_dotenv  # <-- Import this
+import joblib
 
 load_dotenv()  # <-- Add this line to load the .env file
 
@@ -34,45 +34,17 @@ except Exception as e:
     print(f"--- Error initializing Gemini model: {e} ---")
     model = None
 
-# --- ML Model Training ---
-url_vectorizer = None
-url_model = None
-
-
-def train_url_model():
-    """
-    Loads data from 'data.csv' and trains a
-    Logistic Regression model.
-    """
-    global url_vectorizer, url_model
-    try:
-        # Load the dataset
-        data = pd.read_csv('data.csv')
-        data.dropna(inplace=True)
-
-        if 'URL' not in data.columns or 'Label' not in data.columns:
-            print("Error: CSV must have 'URL' and 'Label' columns.")
-            return
-
-        X = data['URL']
-        y = data['Label']
-
-        url_vectorizer = TfidfVectorizer()
-        X_tfidf = url_vectorizer.fit_transform(X)
-
-        url_model = LogisticRegression()
-        url_model.fit(X_tfidf, y)
-
-        print("--- URL detection model trained successfully. ---")
-
-    except FileNotFoundError:
-        print("--- Error: 'data.csv' not found. URL detection will not work. ---")
-    except Exception as e:
-        print(f"--- Error training URL model: {e} ---")
-
-
-# --- END ML Model Training ---
-
+# --- LOAD THE PRE-TRAINED MODEL ---
+# (No more training function!)
+try:
+    url_vectorizer = joblib.load('url_vectorizer.pkl')
+    url_model = joblib.load('url_model.pkl')
+    print("--- URL model and vectorizer loaded. ---")
+except Exception as e:
+    print(f"--- Error loading .pkl files: {e} ---")
+    url_vectorizer = None
+    url_model = None
+# --- END ML MODEL ---
 
 # --- UPDATED HELPER FUNCTION ---
 def predict_fake_or_real_email_content(text):
@@ -219,6 +191,5 @@ def predict_url():
 
 
 if __name__ == '__main__':
-    # Train the model *before* starting the app
-    train_url_model()
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
