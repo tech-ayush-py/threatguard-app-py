@@ -221,4 +221,4 @@ def predict_url():
 if __name__ == '__main__':
     # Train the model *before* starting the app
     train_url_model()
-    app.run(debug=True)
+    app.run(host="0.0.0.0",debug=True)
