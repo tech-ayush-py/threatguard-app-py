@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThreatGuard Dashboard</title>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* === Updated Theme Colors for Dark Violet/Light Navy Background === */
+            --bg-deep-dark: #1F003A; /* Deeper violet for boxes */
+            --bg-secondary: #350064; /* Slightly lighter violet for borders/hovers */
+            --text-primary: #FFFFFF;
+            --text-secondary: #C8C8FF; /* Lighter, contrasting text */
+            --border-color: #5A00A0; /* Mid-tone violet for borders */
+
+            --accent-blue: #0ea5e9;
+            --accent-green: #0057d9;
+            --accent-green-hover: #007bff;
+
+            /* === Result Colors (Red/Green) === */
+            --color-safe-text: #5cffc3;
+            --color-safe-bg: rgba(52, 211, 153, 0.1);
+            --color-danger-text: #ff7d7d;
+            --color-danger-bg: rgba(239, 68, 68, 0.1);
+            --color-unknown: #94A3B8;
+
+            /* === Shortcut Card Colors === */
+            --color-card-1: #0ea5e9; /* Blue */
+            --color-card-2: #34D399; /* Green */
+            --color-card-3: #8B5CF6; /* Purple */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', 'Arial', sans-serif;
+            /* === Dark Violet and Light Navy Gradient === */
+            background: linear-gradient(135deg, #310071, #860000);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+
+        .loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--bg-deep-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.2s ease;
+        }
+
+        .loader {
+            border: 5px solid var(--border-color);
+            border-top: 5px solid var(--accent-blue);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 0.5s linear infinite;
+        }
+
+        .loader-wrapper.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- 3. Horizontal Navbar --- */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background-color: var(--bg-deep-dark);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 3rem;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .logo i {
+            margin-right: 10px;
+            color: var(--accent-blue);
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            height: 100%;
+        }
+
+        .nav-menu .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            height: 100%;
+        }
+
+        .nav-menu .nav-link:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-menu .nav-link.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+        }
+
+        /* --- 4. Main Content Area --- */
+        .main-content {
+            margin-left: 0;
+            margin-top: 100px;
+            padding: 2rem 1.5rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* --- 5. Page Sections --- */
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- 6. Content Container (for forms) --- */
+        .content-box {
+            background-color: var(--bg-deep-dark);
+            padding: 2.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .content-box h2 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .content-box h2 i {
+            margin-right: 10px;
+            color: var(--accent-blue);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: left;
+            color: var(--text-secondary);
+        }
+
+        input[type="text"], input[type="file"], textarea {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="file"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 10px rgba(14, 165, 233, 0.5);
+        }
+
+        input.error, textarea.error {
+            border-color: var(--color-danger-text);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        textarea {
+            font-family: 'Poppins', 'Arial', sans-serif;
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .error-message {
+            color: var(--color-danger-text);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: left;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .error-message.visible {
+            display: block;
+        }
+
+        button[type="submit"] {
+            background-color: var(--accent-green);
+            color: white;
+            padding: 14px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border: none;
+            box-shadow: 0 4px 14px rgba(46, 160, 67, 0.2);
+            margin-top: 1rem;
+        }
+
+        button[type="submit"]:hover {
+            background-color: var(--accent-green-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(46, 160, 67, 0.3);
+        }
+
+        /* --- 7. Result Box Styling --- */
+        .result-box-wrapper {
+            margin-top: 2rem;
+        }
+        .result-box-wrapper h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+        .result-box {
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            text-align: left;
+            border: 1px solid transparent;
+            animation: fadeIn 0.5s ease;
+        }
+        .result-box p { margin: 0; font-size: 1.1rem; }
+        .result-box p:first-child { margin-bottom: 8px; font-weight: 600; }
+
+        .legitimate, .benign {
+            color: var(--color-safe-text);
+            background-color: var(--color-safe-bg);
+            border-color: var(--color-safe-text);
+        }
+        .scam, .phishing, .malware, .error {
+            color: var(--color-danger-text);
+            background-color: var(--color-danger-bg);
+            border-color: var(--color-danger-text);
+        }
+        .unknown {
+            color: var(--color-unknown);
+            background-color: rgba(156, 163, 175, 0.1);
+            border-color: var(--color-unknown);
+        }
+        .message-box {
+            color: var(--text-primary);
+            background-color: rgba(156, 163, 175, 0.1);
+            border-color: var(--color-unknown);
+        }
+
+        /* --- 8. Spinner --- */
+        .spinner {
+            display: none;
+            margin: 10px auto;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* --- 9. Home Page & Shortcut Styles --- */
+        .welcome-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .welcome-header i {
+            font-size: 3rem;
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+        }
+        .welcome-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .welcome-description {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        /* === "Quick Tools" H2 rule === */
+        #page-home .content-box h2 {
+            text-align: center;
+            border-bottom: none;
+            border-top: 1px solid var(--border-color);
+            padding-top: 2rem;
+            margin-top: 2rem;
+        }
+
+        .shortcut-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .shortcut-card {
+            background-color: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .shortcut-card i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            transition: color 0.3s ease;
+        }
+        .shortcut-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+        .shortcut-card p {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        /* === Colorful Card Styles === */
+        .shortcut-card.card-1 i { color: var(--color-card-1); }
+        .shortcut-card.card-1:hover {
+            border-color: var(--color-card-1);
+            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.2);
+        }
+
+        .shortcut-card.card-2 i { color: var(--color-card-2); }
+        .shortcut-card.card-2:hover {
+            border-color: var(--color-card-2);
+            box-shadow: 0 8px 20px rgba(52, 211, 153, 0.2);
+        }
+
+        .shortcut-card.card-3 i { color: var(--color-card-3); }
+        .shortcut-card.card-3:hover {
+            border-color: var(--color-card-3);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.2);
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="loader-wrapper" id="loader">
+        <div class="loader"></div>
+    </div>
+
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-shield-alt"></i> ThreatGuard
+        </div>
+        <ul class="nav-menu">
+            <li><a href="#" class="nav-link" data-target="page-home"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="#" class="nav-link" data-target="page-file"><i class="fas fa-file-upload"></i> File Analysis</a></li>
+            <li><a href="#" class="nav-link" data-target="page-text"><i class="fas fa-comment-dots"></i> Text Analysis</a></li>
+            <li><a href="#" class="nav-link" data-target="page-url"><i class="fas fa-link"></i> URL Analysis</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+
+        <div class="page" id="page-home">
+            <div class="content-box">
+                <div class="welcome-header">
+                    <i class="fas fa-shield-alt"></i>
+                    <h1>Welcome to ThreatGuard</h1>
+                </div>
+                <p class="welcome-description">
+                    Your all-in-one solution for digital security.<br>Analyze files, text messages, and URLs for potential threats in seconds.
+                </p>
+
+                <h2>Quick Tools</h2>
+                <div class="shortcut-container">
+                    <div class="shortcut-card card-1" data-target="page-file">
+                        <i class="fas fa-file-upload"></i>
+                        <h3>File Analysis</h3>
+                        <p>Upload a PDF or TXT file to scan for malicious content.</p>
+                    </div>
+                    <div class="shortcut-card card-2" data-target="page-text">
+                        <i class="fas fa-comment-dots"></i>
+                        <h3>Text Analysis</h3>
+                        <p>Paste a message to check for scam and phishing tactics.</p>
+                    </div>
+                    <div class="shortcut-card card-3" data-target="page-url">
+                        <i class="fas fa-link"></i>
+                        <h3>URL Analysis</h3>
+                        <p>Enter a URL to check if it's a known malicious site.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-file">
+            <div class="content-box">
+                <h2><i class="fas fa-exclamation-triangle"></i> Malicious File Scanner</h2>
+                <form id="fileForm" action="/scam/" method="post" enctype="multipart/form-data" novalidate>
+                    <label for="file">Upload a PDF or TXT file </label>
+                    <input type="file" name="file" id="file" required>
+                    <p class="error-message" id="file-error">Please select a file to analyze</p>
+                    <button type="submit"><i class="fas fa-upload scan-icon"></i> Analyze File</button>
+                    <div id="fileSpinner" class="spinner"></div>
+                </form>
+
+                {% if file_analysis_result %}
+                <div class="result-box-wrapper">
+                    <h3>Result:</h3>
+                    <div class="result-box {{ file_analysis_result.class.lower() | default('unknown') }}">
+                        <p><strong>Analysis :</strong> {{ file_analysis_result.class }}</p>
+                        <p><strong>Details :</strong> {{ file_analysis_result.details }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="page" id="page-text">
+            <div class="content-box">
+                <h2><i class="fas fa-comment-dots"></i> Scam Text Analyzer</h2>
+                <form id="textForm" method="post" action="/analyze_text" novalidate>
+                    <label for="message_text">Enter your message below </label>
+                    <textarea id="message_text" name="message_text" required></textarea>
+                    <p class="error-message" id="text-error">Please enter a message to analyze</p>
+                    <button type="submit"><i class="fas fa-search"></i> Analyze Text</button>
+                    <div id="textSpinner" class="spinner"></div>
+                </form>
+
+                {% if text_analysis_result %}
+                <div class="result-box-wrapper">
+                    <h3>Result:</h3>
+                    <div class="result-box {{ text_analysis_result.class.lower() | default('unknown') }}">
+                        <p><strong>Analysis :</strong> {{ text_analysis_result.class }}</p>
+                        <p><strong>Details :</strong> {{ text_analysis_result.details }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="page" id="page-url">
+            <div class="content-box">
+                <h2><i class="fas fa-link"></i> URL Threat Detector</h2>
+                <form id="urlForm" method="post" action="/predict" novalidate>
+                    <label for="url">Enter URL </label>
+                    <input type="text" id="url" name="url" required>
+                    <p class="error-message" id="url-error">Please enter a URL to analyze</p>
+                    <button type="submit"><i class="fas fa-search"></i> Classify URL</button>
+                    <div id="urlSpinner" class="spinner"></div>
+                </form>
+
+                {% if url_error %}
+                <div class="result-box-wrapper">
+                    <h3>Result:</h3>
+                    <div class="result-box error">
+                        <p><strong>URL:</strong> {{ input_url }}</p>
+                        <p><strong>Error:</strong> {{ url_error }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if predicted_class %}
+                <div class="result-box-wrapper">
+                    <h3>Result:</h3>
+                    <div class="result-box {{ predicted_class.lower() | default('unknown') }}">
+                        <p><strong>URL :</strong> {{ input_url }}</p>
+                        <p><strong>Predicted Class :</strong> {{ predicted_class | capitalize }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- Page Loader ---
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            loader.classList.add('fade-out');
+        });
+
+        // --- Navigation Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const pages = document.querySelectorAll('.page');
+            const shortcuts = document.querySelectorAll('.shortcut-card');
+
+            function showPage(targetId) {
+                pages.forEach(page => page.classList.remove('active'));
+                navLinks.forEach(link => link.classList.remove('active'));
+
+                const targetPage = document.getElementById(targetId);
+                if(targetPage) targetPage.classList.add('active');
+
+                const targetLink = document.querySelector(`.nav-link[data-target="${targetId}"]`);
+                if(targetLink) targetLink.classList.add('active');
+            }
+
+            // --- Logic to show the correct page on load ---
+            let activePageId = 'page-home';
+
+            {% if file_analysis_result %}
+                activePageId = 'page-file';
+            {% elif text_analysis_result %}
+                activePageId = 'page-text';
+            {% elif url_error or predicted_class %}
+                activePageId = 'page-url';
+            {% endif %}
+
+            showPage(activePageId);
+
+            // --- Click Handlers for Navigation ---
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('data-target');
+                    showPage(targetId);
+                });
+            });
+
+            // --- Click Handlers for Shortcuts ---
+            shortcuts.forEach(card => {
+                card.addEventListener('click', () => {
+                    const targetId = card.getAttribute('data-target');
+                    showPage(targetId);
+                });
+            });
+
+            // --- Form Spinners & Validation Logic ---
+            const forms = [
+                {
+                    formId: 'fileForm',
+                    inputId: 'file',
+                    errorId: 'file-error',
+                    spinnerId: 'fileSpinner'
+                },
+                {
+                    formId: 'textForm',
+                    inputId: 'message_text',
+                    errorId: 'text-error',
+                    spinnerId: 'textSpinner'
+                },
+                {
+                    formId: 'urlForm',
+                    inputId: 'url',
+                    errorId: 'url-error',
+                    spinnerId: 'urlSpinner'
+                }
+            ];
+
+            forms.forEach(formInfo => {
+                const currentForm = document.getElementById(formInfo.formId);
+                const input = document.getElementById(formInfo.inputId);
+                const errorMsg = document.getElementById(formInfo.errorId);
+
+                if (currentForm && input && errorMsg) {
+                    currentForm.addEventListener('submit', (e) => {
+                        if (input.value.trim() === '') {
+                            e.preventDefault();
+                            errorMsg.classList.add('visible');
+                            input.classList.add('error');
+                        } else {
+                            errorMsg.classList.remove('visible');
+                            input.classList.remove('error');
+                            const spinner = document.getElementById(formInfo.spinnerId);
+                            if(spinner) spinner.style.display = 'block';
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
